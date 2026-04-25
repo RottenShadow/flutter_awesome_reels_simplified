@@ -84,9 +84,9 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
       key: Key('reel_${widget.reel.id}'),
       onVisibilityChanged: _onVisibilityChanged,
       child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.black,
+        width: widget.config.videoPlayerConfig.width,
+        height: widget.config.videoPlayerConfig.height,
+        color: widget.config.videoPlayerConfig.backgroundColor,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -155,7 +155,7 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
         }
 
         return FittedBox(
-          fit: BoxFit.cover,
+          fit: widget.config.videoPlayerConfig.videoFit,
           child: SizedBox(
             width: videoSize.width,
             height: videoSize.height,

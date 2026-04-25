@@ -122,7 +122,10 @@ class _ReelOverlayState extends State<ReelOverlay>
             }
           },
           child: Container(
+            width: widget.config.videoPlayerConfig.width,
+            height: widget.config.videoPlayerConfig.height,
             decoration: BoxDecoration(
+              color: widget.config.videoPlayerConfig.backgroundColor,
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,

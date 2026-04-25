@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconly/iconly.dart';
-import 'package:like_button/like_button.dart';
 
 import '../controllers/reel_controller.dart';
 import '../models/reel_config.dart';
@@ -73,52 +71,14 @@ class _ReelActionsState extends State<ReelActions>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Like button using LikeButton package
-        LikeButton(
-          isLiked: widget.reel.isLiked,
-          likeCount: widget.reel.likesCount,
-          size: 32,
-          countPostion: CountPostion.bottom,
-          likeCountAnimationType: LikeCountAnimationType.none,
-          likeBuilder: (bool isLiked) {
-            return Icon(
-              IconlyLight.heart,
-              color: isLiked ? Colors.red : widget.config.textColor,
-              size: 32,
-            );
-          },
-          countBuilder: (int? count, bool isLiked, String text) {
-            if (count == null || count == 0) return const SizedBox.shrink();
-            return Text(
-              ReelUtils.formatCount(count),
-              style: TextStyle(
-                color: widget.config.textColor,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            );
-          },
-          onTap: (isLiked) async {
-            _handleLike(controller);
-            return !isLiked;
-          },
-        ),
+        // Like button
+        _buildLikeButton(controller),
         const SizedBox(height: 16),
         // Comment button
-        _buildActionButton(
-          icon: IconlyLight.chat,
-          iconColor: widget.config.textColor,
-          count: widget.reel.commentsCount,
-          onTap: () => _handleComment(controller),
-        ),
+        _buildCommentButton(controller),
         const SizedBox(height: 16),
         // Share button
-        _buildActionButton(
-          icon: IconlyLight.send,
-          iconColor: widget.config.textColor,
-          count: widget.reel.sharesCount,
-          onTap: () => _handleShare(controller),
-        ),
+        _buildShareButton(controller),
         const SizedBox(height: 16),
         // Bookmark button (only show if not in more menu)
         if (widget.config.showBookmarkButton &&
@@ -147,18 +107,82 @@ class _ReelActionsState extends State<ReelActions>
             !widget.config.downloadInMoreMenu)
           const SizedBox(height: 16),
         // More options button
-        if (widget.config.showMoreButton)
-          _buildActionButton(
-            icon: Icons.more_vert,
-            iconColor: widget.config.textColor,
-            onTap: () => _showMoreOptions(context, controller),
-          ),
+        if (widget.config.showMoreButton) _buildMoreButton(controller),
         if (widget.config.showMoreButton) const SizedBox(height: 16),
         // Creator avatar (spinning music note style)
         if (widget.reel.musicTitle != null) _buildMusicAvatar(),
       ],
     );
   }
+
+  // ── Like ──────────────────────────────────────────────────────────────────
+
+  Widget _buildLikeButton(ReelController controller) {
+    if (widget.config.likeButtonBuilder != null) {
+      return widget.config.likeButtonBuilder!(
+        widget.reel,
+        widget.reel.isLiked,
+        () => _handleLike(controller),
+      );
+    }
+    return _DefaultLikeButton(
+      reel: widget.reel,
+      config: widget.config,
+      onTap: () => _handleLike(controller),
+    );
+  }
+
+  // ── Comment ───────────────────────────────────────────────────────────────
+
+  Widget _buildCommentButton(ReelController controller) {
+    if (widget.config.commentButtonBuilder != null) {
+      return widget.config.commentButtonBuilder!(
+        widget.reel,
+        () => _handleComment(controller),
+      );
+    }
+    return _buildActionButton(
+      icon: Icons.chat_bubble_outline,
+      iconColor: widget.config.textColor,
+      count: widget.reel.commentsCount,
+      onTap: () => _handleComment(controller),
+    );
+  }
+
+  // ── Share ─────────────────────────────────────────────────────────────────
+
+  Widget _buildShareButton(ReelController controller) {
+    if (widget.config.shareButtonBuilder != null) {
+      return widget.config.shareButtonBuilder!(
+        widget.reel,
+        () => _handleShare(controller),
+      );
+    }
+    return _buildActionButton(
+      icon: Icons.send_outlined,
+      iconColor: widget.config.textColor,
+      count: widget.reel.sharesCount,
+      onTap: () => _handleShare(controller),
+    );
+  }
+
+  // ── More ──────────────────────────────────────────────────────────────────
+
+  Widget _buildMoreButton(ReelController controller) {
+    if (widget.config.moreButtonBuilder != null) {
+      return widget.config.moreButtonBuilder!(
+        widget.reel,
+        () => _showMoreOptions(context, controller),
+      );
+    }
+    return _buildActionButton(
+      icon: Icons.more_vert,
+      iconColor: widget.config.textColor,
+      onTap: () => _showMoreOptions(context, controller),
+    );
+  }
+
+  // ── Generic action button ─────────────────────────────────────────────────
 
   Widget _buildActionButton({
     required IconData icon,
@@ -167,17 +191,10 @@ class _ReelActionsState extends State<ReelActions>
     required VoidCallback onTap,
     Animation<double>? animation,
   }) {
-    Widget iconWidget = Icon(
-      icon,
-      color: iconColor,
-      size: 28,
-    );
+    Widget iconWidget = Icon(icon, color: iconColor, size: 28);
 
     if (animation != null && !_isDisposed) {
-      iconWidget = Transform.scale(
-        scale: animation.value,
-        child: iconWidget,
-      );
+      iconWidget = Transform.scale(scale: animation.value, child: iconWidget);
     }
 
     return GestureDetector(
@@ -204,6 +221,8 @@ class _ReelActionsState extends State<ReelActions>
     );
   }
 
+  // ── Music avatar ──────────────────────────────────────────────────────────
+
   Widget _buildMusicAvatar() {
     return AnimatedBuilder(
       animation: _pulseAnimationController,
@@ -223,10 +242,7 @@ class _ReelActionsState extends State<ReelActions>
                     widget.config.accentColor.withAlpha(128),
                   ],
                 ),
-                border: Border.all(
-                  color: widget.config.textColor,
-                  width: 2,
-                ),
+                border: Border.all(color: widget.config.textColor, width: 2),
               ),
               child: Icon(
                 Icons.music_note,
@@ -240,12 +256,11 @@ class _ReelActionsState extends State<ReelActions>
     );
   }
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   void _handleLike(ReelController controller) {
     controller.toggleLike(widget.reel);
-
-    if (!widget.reel.isLiked && mounted) {
-      _showFloatingHeart();
-    }
+    if (!widget.reel.isLiked && mounted) _showFloatingHeart();
     if (widget.onLike != null) widget.onLike!();
   }
 
@@ -260,11 +275,9 @@ class _ReelActionsState extends State<ReelActions>
 
   void _handleShare(ReelController controller) {
     controller.incrementShare(widget.reel);
-
     if (widget.config.onShareTap != null) {
       widget.config.onShareTap!(widget.reel);
     } else {
-      // Default share implementation - can be customized by the app
       final url = widget.reel.videoSource?.url ?? widget.reel.videoUrl;
       debugPrint('Sharing reel: $url');
     }
@@ -290,10 +303,9 @@ class _ReelActionsState extends State<ReelActions>
       widget.config.onDownloadTap!(widget.reel);
     } else {
       controller.downloadReel(widget.reel);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Download started...'),
+          content: const Text('Download started...'),
           duration: const Duration(seconds: 2),
           backgroundColor: widget.config.accentColor,
         ),
@@ -330,11 +342,7 @@ class _ReelActionsState extends State<ReelActions>
               opacity: 1.0 - animation.value,
               child: Transform.scale(
                 scale: 0.5 + (0.5 * animation.value),
-                child: Icon(
-                  IconlyLight.heart,
-                  color: Colors.red,
-                  size: 30,
-                ),
+                child: const Icon(Icons.favorite, color: Colors.red, size: 30),
               ),
             ),
           );
@@ -343,7 +351,6 @@ class _ReelActionsState extends State<ReelActions>
     );
 
     overlay.insert(overlayEntry);
-
     animationController.forward().then((_) {
       overlayEntry.remove();
       animationController.dispose();
@@ -371,13 +378,11 @@ class _ReelActionsState extends State<ReelActions>
             return Container(
               decoration: BoxDecoration(
                 color: Colors.blueGrey[900],
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
                 children: [
-                  // Handle bar
                   Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     height: 4,
@@ -387,40 +392,34 @@ class _ReelActionsState extends State<ReelActions>
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  // Header
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
-                        Text(
-                          'Comments',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
+                        Text('Comments',
+                            style: Theme.of(context).textTheme.titleLarge),
                         const Spacer(),
                         Text(
                           ReelUtils.formatCount(widget.reel.commentsCount),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.grey[600]),
                         ),
                       ],
                     ),
                   ),
                   const Divider(height: 1),
-                  // Comments list
                   Expanded(
                     child: ListView.builder(
                       controller: scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: 10, // Placeholder
+                      itemCount: 10,
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
+                              horizontal: 16, vertical: 8),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -430,9 +429,7 @@ class _ReelActionsState extends State<ReelActions>
                                 child: Text(
                                   'U${index + 1}',
                                   style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white,
-                                  ),
+                                      fontSize: 12, color: Colors.white),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -445,18 +442,14 @@ class _ReelActionsState extends State<ReelActions>
                                         Text(
                                           'user${index + 1}',
                                           style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 13,
-                                          ),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13),
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          '2h',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                          ),
-                                        ),
+                                        Text('2h',
+                                            style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12)),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
@@ -465,17 +458,12 @@ class _ReelActionsState extends State<ReelActions>
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                     const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Reply',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                                    Text(
+                                      'Reply',
+                                      style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500),
                                     ),
                                   ],
                                 ),
@@ -483,19 +471,14 @@ class _ReelActionsState extends State<ReelActions>
                               Column(
                                 children: [
                                   IconButton(
-                                    icon: Icon(
-                                      Icons.favorite_border,
-                                      size: 18,
-                                      color: Colors.grey[600],
-                                    ),
+                                    icon: Icon(Icons.favorite_border,
+                                        size: 18, color: Colors.grey[600]),
                                     onPressed: () {},
                                   ),
                                   Text(
                                     '${index + 1}',
                                     style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
-                                    ),
+                                        fontSize: 11, color: Colors.grey[600]),
                                   ),
                                 ],
                               ),
@@ -505,24 +488,19 @@ class _ReelActionsState extends State<ReelActions>
                       },
                     ),
                   ),
-                  // Comment input
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: Colors.grey[300]!),
-                      ),
+                      border:
+                          Border(top: BorderSide(color: Colors.grey[300]!)),
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 16,
                           backgroundColor: widget.config.accentColor,
-                          child: const Icon(
-                            Icons.person,
-                            size: 18,
-                            color: Colors.white,
-                          ),
+                          child: const Icon(Icons.person,
+                              size: 18, color: Colors.white),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -538,19 +516,16 @@ class _ReelActionsState extends State<ReelActions>
                               filled: true,
                               fillColor: Colors.grey[100],
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
+                                  horizontal: 16, vertical: 8),
                             ),
                             maxLines: null,
                             textInputAction: TextInputAction.send,
                             onSubmitted: (text) {
                               if (text.trim().isNotEmpty) {
-                                // Handle comment submission
                                 commentController.clear();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Comment posted!'),
+                                    content: const Text('Comment posted!'),
                                     backgroundColor: widget.config.accentColor,
                                   ),
                                 );
@@ -563,11 +538,10 @@ class _ReelActionsState extends State<ReelActions>
                           onTap: () {
                             final text = commentController.text.trim();
                             if (text.isNotEmpty) {
-                              // Handle comment submission
                               commentController.clear();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Comment posted!'),
+                                  content: const Text('Comment posted!'),
                                   backgroundColor: widget.config.accentColor,
                                 ),
                               );
@@ -576,11 +550,8 @@ class _ReelActionsState extends State<ReelActions>
                           child: CircleAvatar(
                             radius: 18,
                             backgroundColor: widget.config.accentColor,
-                            child: const Icon(
-                              Icons.send,
-                              color: Colors.white,
-                              size: 18,
-                            ),
+                            child: const Icon(Icons.send,
+                                color: Colors.white, size: 18),
                           ),
                         ),
                       ],
@@ -603,7 +574,6 @@ class _ReelActionsState extends State<ReelActions>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Bookmark in more menu
             if (widget.config.showBookmarkButton &&
                 widget.config.bookmarkInMoreMenu)
               ListTile(
@@ -618,50 +588,48 @@ class _ReelActionsState extends State<ReelActions>
                   _handleBookmark(controller);
                 },
               ),
-            // Download in more menu
             if (widget.config.showDownloadButton &&
                 widget.config.downloadInMoreMenu)
               ListTile(
-                leading: Icon(Icons.download),
-                title: Text('Download'),
+                leading: const Icon(Icons.download),
+                title: const Text('Download'),
                 onTap: () {
                   Navigator.pop(context);
                   _handleDownload(controller);
                 },
               ),
             ListTile(
-              leading: Icon(Icons.report),
-              title: Text('Report'),
+              leading: const Icon(Icons.report),
+              title: const Text('Report'),
               onTap: () {
                 Navigator.pop(context);
                 _handleReport(controller);
               },
             ),
             ListTile(
-              leading: Icon(Icons.block),
-              title: Text('Block user'),
+              leading: const Icon(Icons.block),
+              title: const Text('Block user'),
               onTap: () {
                 Navigator.pop(context);
                 _handleBlock(controller);
               },
             ),
             ListTile(
-              leading: Icon(Icons.link),
-              title: Text('Copy link'),
+              leading: const Icon(Icons.link),
+              title: const Text('Copy link'),
               onTap: () {
                 Navigator.pop(context);
                 _handleCopyLink(controller);
               },
             ),
-            if (widget.config.customActions.isNotEmpty)
-              ...widget.config.customActions.map((action) => ListTile(
-                    leading: Icon(action.icon),
-                    title: Text(action.title),
-                    onTap: () {
-                      Navigator.pop(context);
-                      action.onTap(widget.reel);
-                    },
-                  )),
+            ...widget.config.customActions.map((action) => ListTile(
+                  leading: Icon(action.icon),
+                  title: Text(action.title),
+                  onTap: () {
+                    Navigator.pop(context);
+                    action.onTap(widget.reel);
+                  },
+                )),
           ],
         ),
       ),
@@ -669,10 +637,9 @@ class _ReelActionsState extends State<ReelActions>
   }
 
   void _handleReport(ReelController controller) {
-    // Implement report functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Content reported'),
+        content: const Text('Content reported'),
         backgroundColor: widget.config.accentColor,
       ),
     );
@@ -680,13 +647,10 @@ class _ReelActionsState extends State<ReelActions>
 
   void _handleBlock(ReelController controller) {
     if (widget.reel.user?.id == null) return;
-
-    // Implement block functionality
     controller.blockUser(widget.reel.user!.id);
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('User blocked'),
+        content: const Text('User blocked'),
         backgroundColor: widget.config.accentColor,
       ),
     );
@@ -694,11 +658,92 @@ class _ReelActionsState extends State<ReelActions>
   }
 
   void _handleCopyLink(ReelController controller) {
-    // Implement copy link functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Link copied to clipboard'),
+        content: const Text('Link copied to clipboard'),
         backgroundColor: widget.config.accentColor,
+      ),
+    );
+  }
+}
+
+// ── Default like button ────────────────────────────────────────────────────
+
+/// A self-contained animated like button using only Flutter built-in icons.
+/// Consumers can replace this entirely via [ReelConfig.likeButtonBuilder].
+class _DefaultLikeButton extends StatefulWidget {
+  final ReelModel reel;
+  final ReelConfig config;
+  final VoidCallback onTap;
+
+  const _DefaultLikeButton({
+    required this.reel,
+    required this.config,
+    required this.onTap,
+  });
+
+  @override
+  State<_DefaultLikeButton> createState() => _DefaultLikeButtonState();
+}
+
+class _DefaultLikeButtonState extends State<_DefaultLikeButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTap() {
+    _controller.forward().then((_) => _controller.reverse());
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLiked = widget.reel.isLiked;
+    return GestureDetector(
+      onTap: _onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: Icon(
+                isLiked ? Icons.favorite : Icons.favorite_border,
+                color: isLiked ? Colors.red : widget.config.textColor,
+                size: 32,
+              ),
+            ),
+            if (widget.reel.likesCount > 0) ...[
+              const SizedBox(height: 2),
+              Text(
+                ReelUtils.formatCount(widget.reel.likesCount),
+                style: TextStyle(
+                  color: widget.config.textColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
