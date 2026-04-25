@@ -114,6 +114,22 @@ class ReelConfig {
   final void Function(ReelModel)? onDownloadTap;
   final void Function(String)? onHashtagTap;
 
+  /// Custom widget builders for action buttons.
+  /// If provided, these replace the default icon buttons entirely.
+  ///
+  /// [likeButtonBuilder] receives (reel, isLiked, onTap) — build your own like button.
+  /// [commentButtonBuilder] receives (reel, onTap) — build your own comment button.
+  /// [shareButtonBuilder] receives (reel, onTap) — build your own share button.
+  /// [moreButtonBuilder] receives (reel, onTap) — build your own more-options button.
+  final Widget Function(ReelModel reel, bool isLiked, VoidCallback onTap)?
+      likeButtonBuilder;
+  final Widget Function(ReelModel reel, VoidCallback onTap)?
+      commentButtonBuilder;
+  final Widget Function(ReelModel reel, VoidCallback onTap)?
+      shareButtonBuilder;
+  final Widget Function(ReelModel reel, VoidCallback onTap)?
+      moreButtonBuilder;
+
   /// New fields
   final int? preloadRange;
   final bool autoPlay;
@@ -165,6 +181,10 @@ class ReelConfig {
     this.onShareTap,
     this.onDownloadTap,
     this.onHashtagTap,
+    this.likeButtonBuilder,
+    this.commentButtonBuilder,
+    this.shareButtonBuilder,
+    this.moreButtonBuilder,
     this.preloadRange = 1,
     this.autoPlay = true,
     this.loop = true,
@@ -215,6 +235,11 @@ class ReelConfig {
     void Function(ReelModel)? onShareTap,
     void Function(ReelModel)? onDownloadTap,
     void Function(String)? onHashtagTap,
+    Widget Function(ReelModel reel, bool isLiked, VoidCallback onTap)?
+        likeButtonBuilder,
+    Widget Function(ReelModel reel, VoidCallback onTap)? commentButtonBuilder,
+    Widget Function(ReelModel reel, VoidCallback onTap)? shareButtonBuilder,
+    Widget Function(ReelModel reel, VoidCallback onTap)? moreButtonBuilder,
     int? preloadRange,
     bool? autoPlay,
     bool? loop,
@@ -269,6 +294,10 @@ class ReelConfig {
       onShareTap: onShareTap ?? this.onShareTap,
       onDownloadTap: onDownloadTap ?? this.onDownloadTap,
       onHashtagTap: onHashtagTap ?? this.onHashtagTap,
+      likeButtonBuilder: likeButtonBuilder ?? this.likeButtonBuilder,
+      commentButtonBuilder: commentButtonBuilder ?? this.commentButtonBuilder,
+      shareButtonBuilder: shareButtonBuilder ?? this.shareButtonBuilder,
+      moreButtonBuilder: moreButtonBuilder ?? this.moreButtonBuilder,
       preloadRange: preloadRange ?? this.preloadRange,
       autoPlay: autoPlay ?? this.autoPlay,
       loop: loop ?? this.loop,
@@ -520,6 +549,15 @@ class VideoPlayerConfig {
   /// Video fit mode
   final BoxFit videoFit;
 
+  /// Background color behind the video
+  final Color backgroundColor;
+
+  /// Width of the video player container
+  final double width;
+
+  /// Height of the video player container
+  final double height;
+
   /// Whether to start video muted
   final bool startMuted;
 
@@ -554,6 +592,9 @@ class VideoPlayerConfig {
     this.showSubtitle = false,
     this.aspectRatio,
     this.videoFit = BoxFit.cover,
+    this.backgroundColor = Colors.black,
+    this.width = double.infinity,
+    this.height = double.infinity,
     this.startMuted = false,
     this.defaultVolume = 1.0,
     this.playbackSpeeds = const [0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
@@ -572,6 +613,9 @@ class VideoPlayerConfig {
     bool? showSubtitle,
     double? aspectRatio,
     BoxFit? videoFit,
+    Color? backgroundColor,
+    double? width,
+    double? height,
     bool? startMuted,
     double? defaultVolume,
     List<double>? playbackSpeeds,
@@ -589,6 +633,9 @@ class VideoPlayerConfig {
       showSubtitle: showSubtitle ?? this.showSubtitle,
       aspectRatio: aspectRatio ?? this.aspectRatio,
       videoFit: videoFit ?? this.videoFit,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      width: width ?? this.width,
+      height: height ?? this.height,
       startMuted: startMuted ?? this.startMuted,
       defaultVolume: defaultVolume ?? this.defaultVolume,
       playbackSpeeds: playbackSpeeds ?? this.playbackSpeeds,
