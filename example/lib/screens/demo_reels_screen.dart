@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_awesome_reels/flutter_awesome_reels.dart';
+import 'package:flutter_reels/flutter_reels.dart';
 
 class DemoReelsScreen extends StatefulWidget {
   final List<ReelModel>? reels;

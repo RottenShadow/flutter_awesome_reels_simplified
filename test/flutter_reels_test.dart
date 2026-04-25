@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_awesome_reels/flutter_awesome_reels.dart';
+import 'package:flutter_reels/flutter_reels.dart';
 
 void main() {
   testWidgets('AwesomeReels widget can be created',

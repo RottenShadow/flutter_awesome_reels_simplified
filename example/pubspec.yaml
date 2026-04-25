@@ -1,5 +1,5 @@
-name: flutter_awesome_reels_example
-description: Example app for flutter_awesome_reels
+name: flutter_reels_example
+description: Example app for flutter_reels
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -8,7 +8,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_awesome_reels:
+  flutter_reels:
     path: ../
 
   get: ^4.7.2
