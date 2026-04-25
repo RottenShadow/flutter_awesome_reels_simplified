@@ -55,6 +55,11 @@ class AwesomeReels extends StatefulWidget {
   final Widget Function(BuildContext context, ReelModel reel)? loadingBuilder;
 
   final ReelController? controller;
+
+  /// Optional external page controller. Falls back to the internal controller's
+  /// page controller when null.
+  final PageController? pageController;
+
   final void Function(int index)? onReelChanged;
   final void Function(ReelModel reel)? onReelLiked;
   final void Function(ReelModel reel)? onReelShared;
@@ -67,6 +72,7 @@ class AwesomeReels extends StatefulWidget {
   const AwesomeReels({
     super.key,
     required this.reels,
+    this.pageController,
     this.config = const ReelConfig(),
     this.initialIndex = 0,
     this.controller,
@@ -114,7 +120,7 @@ class _AwesomeReelsState extends State<AwesomeReels>
     } else {
       _controller = Get.put(ReelController(), permanent: true);
     }
-    _initializeController();
+    // _initializeController();
   }
 
   @override
@@ -136,27 +142,27 @@ class _AwesomeReelsState extends State<AwesomeReels>
     }
   }
 
-  @override
-  void didUpdateWidget(AwesomeReels oldWidget) {
-    super.didUpdateWidget(oldWidget);
+  // @override
+  // void didUpdateWidget(AwesomeReels oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
 
-    // Reinitialize if reels or config changed
-    if (widget.reels != oldWidget.reels || widget.config != oldWidget.config) {
-      _initializeController();
-    }
-  }
+  //   // Reinitialize if reels or config changed
+  //   if (widget.reels != oldWidget.reels || widget.config != oldWidget.config) {
+  //     _initializeController();
+  //   }
+  // }
 
-  Future<void> _initializeController() async {
-    try {
-      await _controller.initialize(
-        reels: widget.reels,
-        config: widget.config,
-        initialIndex: widget.initialIndex,
-      );
-    } catch (e) {
-      debugPrint('Error initializing AwesomeReels: $e');
-    }
-  }
+  // Future<void> _initializeController() async {
+  //   try {
+  //     await _controller.initialize(
+  //       reels: widget.reels,
+  //       config: widget.config,
+  //       initialIndex: widget.initialIndex,
+  //     );
+  //   } catch (e) {
+  //     debugPrint('Error initializing AwesomeReels: $e');
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -186,7 +192,7 @@ class _AwesomeReelsState extends State<AwesomeReels>
 
   Widget _buildPageView() {
     return PageView.builder(
-      controller: _controller.pageController,
+      controller: _controller.pageController ?? widget.pageController,
       scrollDirection: Axis.vertical,
       physics: widget.config.physics,
       itemCount: widget.reels.length,
