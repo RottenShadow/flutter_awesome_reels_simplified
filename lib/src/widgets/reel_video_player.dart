@@ -5,6 +5,7 @@ import '../models/reel_model.dart';
 import '../models/reel_config.dart';
 import '../controllers/reel_controller.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// Instagram-like video player widget for reels
 class ReelVideoPlayer extends StatefulWidget {
@@ -90,6 +91,7 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            if (widget.reel.thumbnailUrl != null) _buildThumbnail(),
             _buildVideoContent(),
           ],
         ),
@@ -159,7 +161,18 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
           child: SizedBox(
             width: videoSize.width,
             height: videoSize.height,
-            child: VideoPlayer(controller),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                VideoPlayer(controller),
+                if (controller.value.isBuffering)
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: widget.config.progressColor,
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       }
@@ -175,7 +188,8 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
     }
 
     return Container(
-      color: Colors.black,
+      color:
+          widget.reel.thumbnailUrl != null ? Colors.transparent : Colors.black,
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -198,7 +212,8 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
     }
 
     return Container(
-      color: Colors.black,
+      color:
+          widget.reel.thumbnailUrl != null ? Colors.transparent : Colors.black,
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -212,6 +227,15 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildThumbnail() {
+    return CachedNetworkImage(
+      imageUrl: widget.reel.thumbnailUrl!,
+      fit: widget.config.videoPlayerConfig.videoFit,
+      placeholder: (context, url) => Container(color: Colors.black),
+      errorWidget: (context, url, error) => Container(color: Colors.black),
     );
   }
 
