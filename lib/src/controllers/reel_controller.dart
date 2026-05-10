@@ -36,6 +36,7 @@ class ReelController extends GetxController {
   final Rx<Duration> _currentPosition = Duration.zero.obs;
   final Rx<Duration> _totalDuration = Duration.zero.obs;
   final RxnString _error = RxnString();
+  final RxMap<int, String> _reelErrors = <int, String>{}.obs;
 
   // Scroll-based playing
   final RxDouble _pageScrollProgress = 0.0.obs;
@@ -81,6 +82,7 @@ class ReelController extends GetxController {
   Rx<Duration> get currentPosition => _currentPosition;
   Rx<Duration> get totalDuration => _totalDuration;
   RxnString get error => _error;
+  String? getReelError(int index) => _reelErrors[index];
   RxDouble get pageScrollProgress => _pageScrollProgress;
   RxBool get canPlayNext => _canPlayNext;
   bool get isVideoInitializing => _isVideoInitializing.value;
@@ -163,6 +165,8 @@ class ReelController extends GetxController {
 
   /// Initialize current video
   Future<void> _initializeCurrentVideo() async {
+    if (_isVideoInitializing.value) return;
+
     final currentReel = _currentReel.value;
     if (currentReel == null) return;
 
@@ -205,6 +209,7 @@ class ReelController extends GetxController {
     try {
       _isVideoInitializing.value = true;
       _error.value = null;
+      _reelErrors.remove(currentIndex);
 
       // Pause and save current controller to preloaded cache before replacing
       if (_currentVideoController != null &&
@@ -232,6 +237,7 @@ class ReelController extends GetxController {
       }
     } catch (e) {
       _error.value = e.toString();
+      _reelErrors[currentIndex] = e.toString();
       debugPrint('Error initializing current video: $e');
     } finally {
       _isVideoInitializing.value = false;
@@ -317,7 +323,7 @@ class ReelController extends GetxController {
       return controller;
     } catch (e) {
       debugPrint('Error creating video controller: $e');
-      return null;
+      rethrow; // Rethrow to be caught by the caller who sets the reel-specific error
     }
   }
 
@@ -349,7 +355,11 @@ class ReelController extends GetxController {
     _isBuffering.value = controller.value.isBuffering;
 
     if (controller.value.hasError) {
-      _error.value = controller.value.errorDescription;
+      final errorMsg = controller.value.errorDescription ?? 'Unknown error';
+      _error.value = errorMsg;
+      if (_currentVideoIndex != -1) {
+        _reelErrors[_currentVideoIndex] = errorMsg;
+      }
     }
 
     // Prevent black video: if initialized but no texture shown yet and playing,
@@ -417,6 +427,7 @@ class ReelController extends GetxController {
 
     try {
       debugPrint('Preloading video at index $index');
+      _reelErrors.remove(index);
       final reel = _reels[index];
       final controller = await _createVideoController(reel);
 
@@ -427,6 +438,7 @@ class ReelController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error preloading video at index $index: $e');
+      _reelErrors[index] = e.toString();
     }
   }
 
@@ -526,7 +538,10 @@ class ReelController extends GetxController {
       return;
     }
 
-    if (_currentIndex.value != reelIndex) {
+    final isCurrent = _currentIndex.value == reelIndex;
+    final isInitialized = isVideoAlreadyInitialized(reelIndex);
+
+    if (!isCurrent || !isInitialized) {
       _currentIndex.value = reelIndex;
       _currentReel.value = reel;
       await _initializeCurrentVideo();
