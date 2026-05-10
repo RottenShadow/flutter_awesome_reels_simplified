@@ -66,7 +66,9 @@ class VideoSource {
   /// Get URL for specific format
   String getUrlForFormat(VideoFormat format) {
     if (this.format == format) return url;
-    return alternativeSources?[format] ?? url;
+    final altUrl = alternativeSources?[format];
+    if (altUrl != null) return altUrl;
+    return url;
   }
 
   /// Check if format is available
@@ -91,7 +93,7 @@ class VideoSource {
 
   factory VideoSource.fromJson(Map<String, dynamic> json) {
     return VideoSource(
-      url: json['url'],
+      url: json['url'] ?? '',
       format: VideoFormatExtension.fromString(json['format'] ?? 'hls'),
       alternativeSources: json['alternativeSources']?.map<VideoFormat, String>(
         (k, v) => MapEntry(VideoFormatExtension.fromString(k), v),
