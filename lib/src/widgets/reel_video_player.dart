@@ -105,10 +105,20 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
       VideoPlayerController? controller =
           widget.controller.getVideoControllerForReel(widget.reel);
 
-      // Get reel index to check if it's already initialized
       final reelIndex = widget.controller.reels.indexOf(widget.reel);
       final isAlreadyInitialized = reelIndex != -1 &&
           widget.controller.isVideoAlreadyInitialized(reelIndex);
+      final reelError = widget.controller.getReelError(reelIndex);
+
+      // Check for errors first (both from controller and reel-specific map)
+      if (controller != null && controller.value.hasError) {
+        return _buildErrorWidget(
+            controller.value.errorDescription ?? 'Unknown error');
+      }
+
+      if (reelError != null) {
+        return _buildErrorWidget(reelError);
+      }
 
       // Only show initializing on first load, not for switching between videos
       if (widget.controller.isVideoInitializing &&
@@ -122,7 +132,8 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
           _isFirstLoad) {
         // Skip showing "loading" if we're just switching to an already initialized video
         if (isAlreadyInitialized) {
-          return Container(color: Colors.black);
+          return Container(
+              color: widget.config.videoPlayerConfig.backgroundColor);
         }
         return _buildLoadingWidget();
       }
@@ -131,13 +142,8 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
       // show a black screen instead of loading (for smooth transitions)
       if ((controller == null || !controller.value.isInitialized) &&
           !_isFirstLoad) {
-        return Container(color: Colors.black);
-      }
-
-      // Check for errors
-      if (controller != null && controller.value.hasError) {
-        return _buildErrorWidget(
-            controller.value.errorDescription ?? 'Unknown error');
+        return Container(
+            color: widget.config.videoPlayerConfig.backgroundColor);
       }
 
       // If we have a controller and it's initialized, show the video
@@ -164,6 +170,7 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
             child: Stack(
               fit: StackFit.expand,
               children: [
+                _buildThumbnail(),
                 VideoPlayer(controller),
                 if (controller.value.isBuffering)
                   Center(
@@ -178,7 +185,7 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
       }
 
       // Fallback - show black screen
-      return Container(color: Colors.black);
+      return Container(color: widget.config.videoPlayerConfig.backgroundColor);
     });
   }
 
@@ -231,11 +238,12 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
   }
 
   Widget _buildThumbnail() {
+    final color = widget.config.videoPlayerConfig.backgroundColor;
     return CachedNetworkImage(
       imageUrl: widget.reel.thumbnailUrl!,
       fit: widget.config.videoPlayerConfig.videoFit,
-      placeholder: (context, url) => Container(color: Colors.black),
-      errorWidget: (context, url, error) => Container(color: Colors.black),
+      placeholder: (context, url) => Container(color: color),
+      errorWidget: (context, url, error) => Container(color: color),
     );
   }
 
