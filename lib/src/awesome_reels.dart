@@ -56,8 +56,7 @@ class AwesomeReels extends StatefulWidget {
 
   final ReelController? controller;
 
-  /// Optional external page controller. Falls back to the internal controller's
-  /// page controller when null.
+  /// Optional external page controller for the PageView.
   final PageController? pageController;
 
   final void Function(int index)? onReelChanged;
@@ -192,7 +191,7 @@ class _AwesomeReelsState extends State<AwesomeReels>
 
   Widget _buildPageView() {
     return PageView.builder(
-      controller: _controller.pageController ?? widget.pageController,
+      controller: widget.pageController,
       scrollDirection: Axis.vertical,
       physics: widget.config.physics,
       itemCount: widget.reels.length,
@@ -200,6 +199,9 @@ class _AwesomeReelsState extends State<AwesomeReels>
         _controller.onPageChanged(index);
         if (widget.onReelChanged != null) {
           widget.onReelChanged!(index);
+        }
+        if (widget.onPageChanged != null && index < widget.reels.length) {
+          widget.onPageChanged!(index, widget.reels[index]);
         }
       },
       itemBuilder: (context, index) {
