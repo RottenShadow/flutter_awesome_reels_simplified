@@ -132,18 +132,16 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
           _isFirstLoad) {
         // Skip showing "loading" if we're just switching to an already initialized video
         if (isAlreadyInitialized) {
-          return Container(
-              color: widget.config.videoPlayerConfig.backgroundColor);
+          return const SizedBox.shrink();
         }
         return _buildLoadingWidget();
       }
 
       // If the controller exists but isn't initialized and we're not on first load,
-      // show a black screen instead of loading (for smooth transitions)
+      // show nothing (thumbnail behind will show through)
       if ((controller == null || !controller.value.isInitialized) &&
           !_isFirstLoad) {
-        return Container(
-            color: widget.config.videoPlayerConfig.backgroundColor);
+        return const SizedBox.shrink();
       }
 
       // If we have a controller and it's initialized, show the video
@@ -184,8 +182,8 @@ class _ReelVideoPlayerState extends State<ReelVideoPlayer> {
         );
       }
 
-      // Fallback - show black screen
-      return Container(color: widget.config.videoPlayerConfig.backgroundColor);
+      // Fallback - let thumbnail show through
+      return const SizedBox.shrink();
     });
   }
 
