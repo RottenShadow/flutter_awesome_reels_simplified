@@ -58,9 +58,6 @@ class ReelConfig {
   /// Physics for the PageView
   final ScrollPhysics? physics;
 
-  /// Page controller for the reels
-  final PageController? pageController;
-
   /// Whether to enable pull to refresh
   final bool enablePullToRefresh;
 
@@ -155,7 +152,6 @@ class ReelConfig {
     this.showShimmerWhileLoading = true,
     this.shimmerConfig,
     this.physics,
-    this.pageController,
     this.enablePullToRefresh = false,
     this.onRefresh,
     this.enableInfiniteScroll = false,
@@ -209,7 +205,6 @@ class ReelConfig {
     bool? showShimmerWhileLoading,
     ShimmerConfig? shimmerConfig,
     ScrollPhysics? physics,
-    PageController? pageController,
     bool? enablePullToRefresh,
     Future<void> Function()? onRefresh,
     bool? enableInfiniteScroll,
@@ -268,7 +263,6 @@ class ReelConfig {
           showShimmerWhileLoading ?? this.showShimmerWhileLoading,
       shimmerConfig: shimmerConfig ?? this.shimmerConfig,
       physics: physics ?? this.physics,
-      pageController: pageController ?? this.pageController,
       enablePullToRefresh: enablePullToRefresh ?? this.enablePullToRefresh,
       onRefresh: onRefresh ?? this.onRefresh,
       enableInfiniteScroll: enableInfiniteScroll ?? this.enableInfiniteScroll,

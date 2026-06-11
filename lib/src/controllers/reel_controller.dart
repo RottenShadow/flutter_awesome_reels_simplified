@@ -9,7 +9,6 @@ import '../models/reel_config.dart';
 class ReelController extends GetxController {
   List<ReelModel> _reels = [];
   late ReelConfig _config;
-  PageController? _pageController;
 
   final RxList<ReelModel> _reelsList = <ReelModel>[].obs;
 
@@ -66,8 +65,6 @@ class ReelController extends GetxController {
   // Getters
   List<ReelModel> get reels => _reels;
   ReelConfig get config => _config;
-  PageController? get pageController => _pageController;
-
   // Observable getters
   RxList<ReelModel> get reelsList => _reelsList;
   RxInt get currentIndex => _currentIndex;
@@ -141,9 +138,6 @@ class ReelController extends GetxController {
 
       // Clear any preloaded controllers
       await _disposeAllControllers();
-
-      // Initialize page controller
-      _pageController = PageController(initialPage: _currentIndex.value);
 
       // Initialize current video
       await _initializeCurrentVideo();
@@ -372,23 +366,25 @@ class ReelController extends GetxController {
     }
   }
 
-  /// Navigate to next reel
-  Future<void> nextPage() async {
-    if (_pageController == null || _currentIndex.value >= _reels.length - 1) {
+  /// Navigate to next reel using provided page controller
+  Future<void> nextPage([PageController? pageController]) async {
+    final pc = pageController;
+    if (pc == null || _currentIndex.value >= _reels.length - 1) {
       return;
     }
-    await _pageController!.nextPage(
+    await pc.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
-  /// Navigate to previous reel
-  Future<void> previousPage() async {
-    if (_pageController == null || _currentIndex.value <= 0) {
+  /// Navigate to previous reel using provided page controller
+  Future<void> previousPage([PageController? pageController]) async {
+    final pc = pageController;
+    if (pc == null || _currentIndex.value <= 0) {
       return;
     }
-    await _pageController!.previousPage(
+    await pc.previousPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -650,10 +646,6 @@ class ReelController extends GetxController {
 
     // Dispose all controllers
     _disposeAllControllers();
-
-    // Dispose page controller
-    _pageController?.dispose();
-    _pageController = null;
 
     // Disable wakelock
     WakelockPlus.disable();
